@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+{% block title %}Queue Status{% endblock %}
+{% block content %}
+<div class="section-head"><div><p class="eyebrow">Your market-day view</p><h1 class="page-title">Live queue status</h1><p>Keep an eye on the counter from wherever you are.</p></div><span class="system-badge"><i></i>Live updates</span></div>
+
+<div class="card shadow-sm">
+    <div class="card-body text-center py-5">
+        <p class="text-muted mb-1">{{ booking.centre.name }} &middot; {{ booking.slot_config.date }} &middot; {{ booking.slot_config.time_slot }}</p>
+
+        <div class="row justify-content-center my-4">
+            <div class="col-5 col-md-3">
+                <div class="p-3 border rounded bg-light">
+                    <div class="text-muted small">Now Serving</div>
+                    <div class="display-5 fw-bold" id="servingToken">{{ serving_token or '—' }}</div>
+                </div>
+            </div>
+            <div class="col-5 col-md-3">
+                <div class="p-3 border rounded {{ 'bg-warning-subtle' if booking.status == 'serving' else 'bg-light' }}">
+                    <div class="text-muted small">Your Token</div>
+                    <div class="display-5 fw-bold">#{{ booking.token_number }}</div>
+                </div>
+            </div>
+        </div>
+
+        <p id="statusMessage" class="fs-5">
+            {% if booking.status == 'serving' %}
+                <span class="badge bg-warning text-dark">It's your turn — please proceed to the counter!</span>
+            {% elif booking.status == 'completed' %}
+                <span class="badge bg-success">Procurement completed</span>
+            {% elif booking.status == 'no_show' %}
+                <span class="badge bg-secondary">Marked as no-show</span>
+            {% else %}
+                Estimated wait: <strong id="waitMinutes">~{{ predicted_wait_minutes }}</strong> minutes
+            {% endif %}
+        </p>
+
+        <a href="{{ url_for('farmer.tracker', booking_id=booking.id) }}" class="btn btn-outline-secondary btn-sm">View Full Timeline</a>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+const socket = io();
+const centreId = {{ booking.centre_id }};
+const slotDate = "{{ booking.slot_config.date.isoformat() }}";
+const myToken = {{ booking.token_number }};
+
+socket.on('connect', () => {
+    socket.emit('join_queue_room', {centre_id: centreId, date: slotDate});
+});
+
+socket.on('queue_update', (data) => {
+    if (data.centre_id !== centreId || data.date !== slotDate) return;
+    document.getElementById('servingToken').innerText = data.serving_token || '—';
+    if (data.serving_token === myToken) {
+        const turnMessage = window.translateText ? window.translateText("It's your turn — please proceed to the counter!") : "It's your turn — please proceed to the counter!";
+        document.getElementById('statusMessage').innerHTML = `<span class="badge bg-warning text-dark">${turnMessage}</span>`;
+    } else if (data.serving_token > myToken) {
+        document.getElementById('statusMessage').innerText = window.translateText ? window.translateText('Your procurement appears to be complete.') : 'Your procurement appears to be complete.';
+    } else {
+        const waitEl = document.getElementById('waitMinutes');
+        if (waitEl) {
+            const tokensAhead = Math.max(myToken - data.serving_token - 1, 0);
+            waitEl.innerText = '~' + (tokensAhead * (data.predicted_wait_minutes || 5));
+        }
+    }
+});
+</script>
+{% endblock %}

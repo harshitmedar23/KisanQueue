@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block title %}History{% endblock %}
+{% block content %}
+<div class="section-head"><div><p class="eyebrow">Your records</p><h1 class="page-title">Procurement history</h1><p>Every slot, token, payment, and receipt in one calm timeline.</p></div><a class="btn btn-success" href="{{ url_for('farmer.book_slot') }}">New booking &rarr;</a></div>
+
+<div class="card shadow-sm">
+    <div class="table-responsive">
+        <table class="table table-hover mb-0 align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th>Date</th>
+                    <th>Centre</th>
+                    <th>Crop</th>
+                    <th>Qty (kg)</th>
+                    <th>Token</th>
+                    <th>Status</th>
+                    <th>Payment</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for b in bookings %}
+                <tr>
+                    <td>{{ b.slot_config.date }}</td>
+                    <td>{{ b.centre.name }}</td>
+                    <td>{{ b.crop_type }}</td>
+                    <td>{{ b.quantity_kg }}</td>
+                    <td>#{{ b.token_number }}</td>
+                    <td><span class="badge bg-{{ 'success' if b.status == 'completed' else ('warning text-dark' if b.status == 'serving' else 'secondary') }}">{{ b.status }}</span></td>
+                    <td><span class="badge bg-{{ 'success' if b.payment_status == 'paid' else 'secondary' }}">{{ b.payment_status }}</span></td>
+                    <td><a href="{{ url_for('farmer.tracker', booking_id=b.id) }}" class="small">Timeline</a> <a href="{{ url_for('farmer.receipt', booking_id=b.id) }}" class="small">PDF</a></td>
+                </tr>
+                {% else %}
+                <tr><td colspan="8" class="text-center text-muted py-4">No bookings yet.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,327 @@
+{% extends "public/public_base.html" %}
+
+{% block title %}KisanQueue{% endblock %}
+
+{% set translations = {
+    'en': {
+        'hero_title_1': 'Skip the long queue.',
+        'hero_title_2': 'Plan your procurement.',
+        'hero_text': 'Book your procurement slot, arrange transport, track queue updates, and receive your payment — all from one place.',
+        'book_slot': '📅 Book a Procurement Slot',
+        'how_it_works': '▶ How It Works',
+        'built_for_farmers': 'Built for Farmers',
+        'live_queue': 'Real-Time Queue',
+        'transport_support': 'Transport Support',
+        'sms_alerts': 'SMS Alerts',
+        'transparent_payments': 'Transparent Payments',
+        'card_1_title': 'Procurement Slot Booking',
+        'card_1_text': 'Choose a convenient date and time at your nearest APMC.',
+        'card_2_title': 'Farm-to-APMC Transport',
+        'card_2_text': 'Book a Tata Ace, truck, or tractor for your produce.',
+        'card_3_title': 'Live Queue Tracking',
+        'card_3_text': 'See your position and estimated wait time live.',
+        'card_4_title': 'SMS Alerts',
+        'card_4_text': 'Receive important updates without needing to wait.',
+        'card_5_title': 'Payment Tracking',
+        'card_5_text': 'Track payment status from procurement to settlement.',
+        'card_6_title': 'Market Insights',
+        'card_6_text': 'Get crop pricing and demand forecasts in one view.',
+        'learn_more': 'Learn More →',
+        'guide_title': 'How KisanQueue Works',
+        'view_guide': 'View Detailed Guide →',
+        'step_1': 'Register',
+        'step_2': 'Select Centre',
+        'step_3': 'Book Slot',
+        'step_4': 'Arrange Transport',
+        'step_5': 'Track & Process',
+        'step_6': 'Get Paid',
+        'step_1_text': 'Create your account as a farmer or transport partner.',
+        'step_2_text': 'Choose your nearest APMC for procurement.',
+        'step_3_text': 'Select your preferred date and time slot.',
+        'step_4_text': 'Book transport for your produce to the centre.',
+        'step_5_text': 'Follow your live queue status and estimated wait time.',
+        'step_6_text': 'Receive transparent payment updates directly to you.'
+    },
+    'hi': {
+        'hero_title_1': 'लंबी कतार छोड़ें।',
+        'hero_title_2': 'अपना खरीदारी योजना बनाएं।',
+        'hero_text': 'अपना खरीद स्लॉट बुक करें, परिवहन व्यवस्थित करें, कतार अपडेट देखें और भुगतान प्राप्त करें — सब एक ही जगह।',
+        'book_slot': '📅 खरीद स्लॉट बुक करें',
+        'how_it_works': '▶ यह कैसे काम करता है',
+        'built_for_farmers': 'किसानों के लिए बनाया गया',
+        'live_queue': 'रीयल-टाइम कतार',
+        'transport_support': 'परिवहन सहायता',
+        'sms_alerts': 'एसएमएस अलर्ट',
+        'transparent_payments': 'पारदर्शी भुगतान',
+        'card_1_title': 'खरीद स्लॉट बुकिंग',
+        'card_1_text': 'अपने निकटतम एपीएमसी पर सुविधाजनक तारीख और समय चुनें।',
+        'card_2_title': 'फार्म-टू-एपीएमसी परिवहन',
+        'card_2_text': 'अपने उत्पाद के लिए टाटा एसी, ट्रक या ट्रैक्टर बुक करें।',
+        'card_3_title': 'लाइव कतार ट्रैकिंग',
+        'card_3_text': 'अपना स्थान और अनुमानित प्रतीक्षा समय लाइव देखें।',
+        'card_4_title': 'एसएमएस अलर्ट',
+        'card_4_text': 'प्रमुख अपडेट बिना इंतजार के प्राप्त करें।',
+        'card_5_title': 'भुगतान ट्रैकिंग',
+        'card_5_text': 'खरीद से निपटान तक भुगतान स्थिति ट्रैक करें।',
+        'card_6_title': 'मार्केट इन्फॉरमेशन',
+        'card_6_text': 'एक ही जगह फसल कीमत और मांग पूर्वानुमान देखें।',
+        'learn_more': 'और जानें →',
+        'guide_title': 'किसानक्यू कैसे काम करता है',
+        'view_guide': 'विस्तृत मार्गदर्शिका देखें →',
+        'step_1': 'रजिस्टर',
+        'step_2': 'केंद्र चुनें',
+        'step_3': 'स्लॉट बुक करें',
+        'step_4': 'परिवहन व्यवस्थित करें',
+        'step_5': 'ट्रैक और प्रोसेस',
+        'step_6': 'भुगतान लें',
+        'step_1_text': 'किसान या परिवहन साझेदार के रूप में अपना खाता बनाएं।',
+        'step_2_text': 'खरीद के लिए अपना निकटतम एपीएमसी चुनें।',
+        'step_3_text': 'अपना पसंदीदा दिन और समय चुनें।',
+        'step_4_text': 'अपने उत्पाद के लिए केंद्र तक परिवहन बुक करें।',
+        'step_5_text': 'अपनी लाइव कतार स्थिति और अनुमानित प्रतीक्षा समय देखें।',
+        'step_6_text': 'सीधे आपको पारदर्शी भुगतान अपडेट मिलते हैं।'
+    },
+    'kn': {
+        'hero_title_1': 'ದೀರ್ಘ ಸಾಲನ್ನು ಬಿಟ್ಟು ಬಿಡಿ.',
+        'hero_title_2': 'ನಿಮ್ಮ ಕೊಂಡಾಟವನ್ನು ಯೋಜಿಸಿ.',
+        'hero_text': 'ನಿಮ್ಮ ಕೊಂಡಾಟದ ಸ್ಲಾಟ್ ಬುಕ್ ಮಾಡಿ, ಸಾರಿಗೆ ವ್ಯವಸ್ಥೆ ಮಾಡಿ, ಸರದಿ ನವೀಕರಣಗಳನ್ನು ನೋಡಿರಿ ಮತ್ತು ಪಾವತಿಯನ್ನು ಸ್ವೀಕರಿಸಿ — ಅವೆಲ್ಲವನ್ನೂ ಒಂದೇ ಸ್ಥಳದಲ್ಲಿ.',
+        'book_slot': '📅 ಕೊಂಡಾಟ ಸ್ಲಾಟ್ ಬುಕ್ ಮಾಡಿ',
+        'how_it_works': '▶ ಅದು ಹೇಗೆ ಕೆಲಸ ಮಾಡುತ್ತದೆ',
+        'built_for_farmers': 'ರೈತರಿಗೆ ನಿರ್ಮಿಸಲಾಗಿದೆ',
+        'live_queue': '라이브 ಸರದಿ',
+        'transport_support': 'ಸಾರಿಗೆ ಸಹಾಯ',
+        'sms_alerts': 'ಎಸ್ಎಂಎಸ್ ಸೂಚನೆಗಳು',
+        'transparent_payments': 'ಪಾರದರ್ಶಕ ಪಾವತಿಗಳು',
+        'card_1_title': 'ಕೊಂಡಾಟ ಸ್ಲಾಟ್ ಬುಕ್ಕಿಂಗ್',
+        'card_1_text': 'ನಿಮ್ಮ closest APMC ನಲ್ಲಿ ಅನುಕೂಲಕರ ದಿನ ಮತ್ತು ಸಮಯವನ್ನು ಆಯ್ಕೆಮಾಡಿ.',
+        'card_2_title': 'ಫಾರ್ಮ್-ಟು-APMC ಸಾರಿಗೆ',
+        'card_2_text': 'ನಿಮ್ಮ ಉತ್ಪನ್ನಕ್ಕಾಗಿ ಟಾಟಾ ಅಜೆ, ಟ್ರಕ್ ಅಥವಾ ಟ್ರ್ಯಾಕ್ಟರ್ ಬುಕ್ ಮಾಡಿ.',
+        'card_3_title': 'ಲೈವ್ ಸರದಿ ಟ್ರ್ಯಾಕಿಂಗ್',
+        'card_3_text': 'ನಿಮ್ಮ ಸ್ಥಾನ ಮತ್ತು ಅಂದಾಜು ಕಾಯುವ ಸಮಯವನ್ನು ಲೈವ್‌ನಲ್ಲಿ ನೋಡಿ.',
+        'card_4_title': 'ಎಸ್ಎಂಎಸ್ ಸೂಚನೆಗಳು',
+        'card_4_text': 'ಕಾಯುವ ಅಗತ್ಯವಿಲ್ಲದೆ ಪ್ರಮುಖ ನವೀಕರಣಗಳನ್ನು ಸ್ವೀಕರಿಸಿ.',
+        'card_5_title': 'ಪಾವತಿ ಟ್ರ್ಯಾಕಿಂಗ್',
+        'card_5_text': 'ಕೊಂಡಾಟದಿಂದ ಪರಿಹಾರამდე ಪಾವತಿ ಸ್ಥಿತಿಯನ್ನು ಟ್ರ್ಯಾಕ್ ಮಾಡಿ.',
+        'card_6_title': 'ಮಾರುಕಟ್ಟೆ ಒಳನೋಟಗಳು',
+        'card_6_text': 'ಒಂದು ಸ್ಥಳದಲ್ಲಿ ಬೆಳೆಮೌಲ್ಯ ಮತ್ತು ಬೇಡಿಕೆ ಮುನ್ಸೂಚನೆಗಳನ್ನು ಪಡೆಯಿರಿ.',
+        'learn_more': 'ಹೆಚ್ಚು ತಿಳಿಯಿರಿ →',
+        'guide_title': 'ಕಿಸಾನ್ಕ್ಯೂ ಹೇಗೆ ಕೆಲಸ ಮಾಡುತ್ತದೆ',
+        'view_guide': 'ವಿಸ್ತೃತ ಮಾರ್ಗದರ್ಶಿ ನೋಡಿ →',
+        'step_1': 'ನೋಂದಣಿ',
+        'step_2': 'ಕೇಂದ್ರ ಆಯ್ಕೆ',
+        'step_3': 'ಸ್ಲಾಟ್ ಬುಕ್ ಮಾಡಿ',
+        'step_4': 'ಸಾರಿಗೆ ವ್ಯವಸ್ಥೆ',
+        'step_5': 'ಟ್ರ್ಯಾಕ್ & ಪ್ರಕ್ರಿಯೆ',
+        'step_6': 'ಪಾವತಿಯನ್ನು ಪಡೆಯಿರಿ',
+        'step_1_text': 'ರೈತ ಅಥವಾ ಸಾರಿಗೆ ಪಾಲುದಾರನಾಗಿ ನಿಮ್ಮ ಖಾತೆಯನ್ನು ರಚಿಸಿ.',
+        'step_2_text': 'ಕೊಂಡಾಟಕ್ಕಾಗಿ ನಿಮ್ಮ ಹತ್ತಿರದ APMC ಅನ್ನು ಆಯ್ಕೆಮಾಡಿ.',
+        'step_3_text': 'ನಿಮ್ಮ ಇಷ್ಟದ ದಿನ ಮತ್ತು ಸಮಯ ಸ್ಲಾಟ್ ಅನ್ನು ಆಯ್ಕೆಮಾಡಿ.',
+        'step_4_text': 'ನಿಮ್ಮ ಉತ್ಪನ್ನಕ್ಕಾಗಿ ಕೇಂದ್ರಕ್ಕೆ ಸಾರಿಕೆಯನ್ನು ಬುಕ್ ಮಾಡಿ.',
+        'step_5_text': 'ನಿಮ್ಮ ಲೈವ್ ಸರದಿ ಸ್ಥಿತಿ ಮತ್ತು ಅಂದಾಜು ಕಾಯುವ ಸಮಯವನ್ನು ಗಮನಿಸಿ.',
+        'step_6_text': 'ನಿಮ್ಮ ಬಳಿಗೆ ಪಾರದರ್ಶಕ ಪಾವತಿ ನವೀಕರಣಗಳು ದೊರೆಯುತ್ತವೆ.'
+    }
+}[language] %}
+
+{% block content %}
+<div class="home-page-shell">
+    <section class="hero-strip mb-4">
+        <div class="row align-items-center g-4">
+            <div class="col-lg-7">
+                <div class="mb-3">
+                    <h1 class="display-3 fw-bold mb-2" style="font-size: clamp(3rem, 5vw, 5rem); line-height: 0.95; letter-spacing: -0.06em; color: #ffffff;">
+                        {{ translations.hero_title_1 }}<br>
+                        <span style="color: #bfe9d1;">{{ translations.hero_title_2 }}</span>
+                    </h1>
+                </div>
+                <p class="lead mb-4" style="max-width: 620px; color: rgba(255,255,255,0.88); font-size: 1.12rem;">
+                    {{ translations.hero_text }}
+                </p>
+                <div class="d-flex flex-wrap gap-3 mb-4">
+                    <a href="{{ url_for('auth.register') }}" class="btn btn-success btn-lg px-4 py-3">{{ translations.book_slot }}</a>
+                    <a href="#how-it-works" class="btn btn-outline-light btn-lg px-4 py-3">{{ translations.how_it_works }}</a>
+                </div>
+                <div class="d-flex flex-wrap gap-3 align-items-center">
+                    <span class="d-inline-flex align-items-center gap-2 text-white small"><i class="bi bi-check2-circle"></i> {{ translations.built_for_farmers }}</span>
+                    <span class="d-inline-flex align-items-center gap-2 text-white small"><i class="bi bi-clock-history"></i> {{ translations.live_queue }}</span>
+                    <span class="d-inline-flex align-items-center gap-2 text-white small"><i class="bi bi-truck"></i> {{ translations.transport_support }}</span>
+                    <span class="d-inline-flex align-items-center gap-2 text-white small"><i class="bi bi-bell"></i> {{ translations.sms_alerts }}</span>
+                    <span class="d-inline-flex align-items-center gap-2 text-white small"><i class="bi bi-wallet2"></i> {{ translations.transparent_payments }}</span>
+                </div>
+            </div>
+            <div class="col-lg-5 position-relative">
+                <div class="card border-0 shadow-sm" style="background: rgba(255,255,255,0.18); border: 1px solid rgba(255,255,255,0.18); backdrop-filter: blur(4px);">
+                    <div class="card-body p-0">
+                        <div style="height: 360px; background: linear-gradient(135deg, rgba(13,63,53,0.55), rgba(23,107,79,0.2)), url('https://images.unsplash.com/photo-1501004318641-b39e6451bec6?auto=format&fit=crop&w=900&q=80') center/cover no-repeat; border-radius: 1rem; position: relative; overflow: hidden;">
+                            <div class="position-absolute top-4 start-4 bg-white rounded-4 shadow-sm px-3 py-2 d-flex align-items-center gap-3" style="max-width: 210px;">
+                                <div class="rounded-circle bg-success-subtle text-success d-flex align-items-center justify-content-center" style="width: 42px; height: 42px;">
+                                    <i class="bi bi-graph-up-arrow" style="font-size: 1.2rem;"></i>
+                                </div>
+                                <div>
+                                    <div class="fw-bold text-dark" style="font-size: 0.9rem;">Better Markets</div>
+                                    <div class="small text-secondary">A Stronger Tomorrow</div>
+                                </div>
+                            </div>
+                            <div class="position-absolute end-4 top-4 bg-white rounded-4 shadow-sm px-3 py-3" style="max-width: 180px;">
+                                <div class="fw-bold text-dark" style="font-size: 1.1rem; font-style: italic; line-height: 1.2; color: var(--green-dark);">
+                                    “Prosperous<br>Farmers<br>Stronger<br>India”
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="row g-3 mb-5">
+        <div class="col-6 col-md-4 col-lg-2">
+            <div class="card h-100 text-center p-3" style="background: #eaf6ef; border-color: rgba(23,107,79,0.12);">
+                <div class="mb-3"><i class="bi bi-calendar-check text-success" style="font-size: 2rem;"></i></div>
+                <h6 class="fw-bold mb-2">{{ translations.card_1_title }}</h6>
+                <p class="small text-secondary mb-2">{{ translations.card_1_text }}</p>
+                <a href="#" class="small fw-semibold text-success">{{ translations.learn_more }}</a>
+            </div>
+        </div>
+        <div class="col-6 col-md-4 col-lg-2">
+            <div class="card h-100 text-center p-3" style="background: #eef5ff; border-color: rgba(59,130,246,0.12);">
+                <div class="mb-3"><i class="bi bi-truck text-primary" style="font-size: 2rem;"></i></div>
+                <h6 class="fw-bold mb-2">{{ translations.card_2_title }}</h6>
+                <p class="small text-secondary mb-2">{{ translations.card_2_text }}</p>
+                <a href="#" class="small fw-semibold text-primary">{{ translations.learn_more }}</a>
+            </div>
+        </div>
+        <div class="col-6 col-md-4 col-lg-2">
+            <div class="card h-100 text-center p-3" style="background: #fff6df; border-color: rgba(217,154,43,0.15);">
+                <div class="mb-3"><i class="bi bi-people text-warning" style="font-size: 2rem;"></i></div>
+                <h6 class="fw-bold mb-2">{{ translations.card_3_title }}</h6>
+                <p class="small text-secondary mb-2">{{ translations.card_3_text }}</p>
+                <a href="#" class="small fw-semibold text-warning">{{ translations.learn_more }}</a>
+            </div>
+        </div>
+        <div class="col-6 col-md-4 col-lg-2">
+            <div class="card h-100 text-center p-3" style="background: #fbe9ef; border-color: rgba(220,53,69,0.12);">
+                <div class="mb-3"><i class="bi bi-bell text-danger" style="font-size: 2rem;"></i></div>
+                <h6 class="fw-bold mb-2">{{ translations.card_4_title }}</h6>
+                <p class="small text-secondary mb-2">{{ translations.card_4_text }}</p>
+                <a href="#" class="small fw-semibold text-danger">{{ translations.learn_more }}</a>
+            </div>
+        </div>
+        <div class="col-6 col-md-4 col-lg-2">
+            <div class="card h-100 text-center p-3" style="background: #f0f7ff; border-color: rgba(13,110,253,0.12);">
+                <div class="mb-3"><i class="bi bi-currency-rupee text-info" style="font-size: 2rem;"></i></div>
+                <h6 class="fw-bold mb-2">{{ translations.card_5_title }}</h6>
+                <p class="small text-secondary mb-2">{{ translations.card_5_text }}</p>
+                <a href="#" class="small fw-semibold text-info">{{ translations.learn_more }}</a>
+            </div>
+        </div>
+        <div class="col-6 col-md-4 col-lg-2">
+            <div class="card h-100 text-center p-3" style="background: #edf9f1; border-color: rgba(25,135,84,0.12);">
+                <div class="mb-3"><i class="bi bi-graph-up text-success" style="font-size: 2rem;"></i></div>
+                <h6 class="fw-bold mb-2">{{ translations.card_6_title }}</h6>
+                <p class="small text-secondary mb-2">{{ translations.card_6_text }}</p>
+                <a href="#" class="small fw-semibold text-success">{{ translations.learn_more }}</a>
+            </div>
+        </div>
+    </section>
+
+    <section id="how-it-works" class="mb-5">
+        <div class="d-flex align-items-center justify-content-between mb-4">
+            <h2 class="fw-bold mb-0" style="font-size: clamp(2.2rem, 3vw, 3.1rem); letter-spacing: -0.04em; color: var(--green-dark);">{{ translations.guide_title }}</h2>
+            <a href="{{ url_for('auth.register') }}" class="btn btn-link text-decoration-none text-success fw-semibold">{{ translations.view_guide }}</a>
+        </div>
+        <div class="row g-4">
+            <div class="col-12 col-md-6 col-lg-2">
+                <div class="card h-100 p-3">
+                    <div class="rounded-circle bg-success text-white d-flex align-items-center justify-content-center mb-3" style="width: 48px; height: 48px; font-weight: 700;">1</div>
+                    <h6 class="fw-bold mb-2">{{ translations.step_1 }}</h6>
+                    <p class="small text-secondary mb-0">{{ translations.step_1_text }}</p>
+                </div>
+            </div>
+            <div class="col-12 col-md-6 col-lg-2">
+                <div class="card h-100 p-3">
+                    <div class="rounded-circle bg-success text-white d-flex align-items-center justify-content-center mb-3" style="width: 48px; height: 48px; font-weight: 700;">2</div>
+                    <h6 class="fw-bold mb-2">{{ translations.step_2 }}</h6>
+                    <p class="small text-secondary mb-0">{{ translations.step_2_text }}</p>
+                </div>
+            </div>
+            <div class="col-12 col-md-6 col-lg-2">
+                <div class="card h-100 p-3">
+                    <div class="rounded-circle bg-success text-white d-flex align-items-center justify-content-center mb-3" style="width: 48px; height: 48px; font-weight: 700;">3</div>
+                    <h6 class="fw-bold mb-2">{{ translations.step_3 }}</h6>
+                    <p class="small text-secondary mb-0">{{ translations.step_3_text }}</p>
+                </div>
+            </div>
+            <div class="col-12 col-md-6 col-lg-2">
+                <div class="card h-100 p-3">
+                    <div class="rounded-circle bg-success text-white d-flex align-items-center justify-content-center mb-3" style="width: 48px; height: 48px; font-weight: 700;">4</div>
+                    <h6 class="fw-bold mb-2">{{ translations.step_4 }}</h6>
+                    <p class="small text-secondary mb-0">{{ translations.step_4_text }}</p>
+                </div>
+            </div>
+            <div class="col-12 col-md-6 col-lg-2">
+                <div class="card h-100 p-3">
+                    <div class="rounded-circle bg-success text-white d-flex align-items-center justify-content-center mb-3" style="width: 48px; height: 48px; font-weight: 700;">5</div>
+                    <h6 class="fw-bold mb-2">{{ translations.step_5 }}</h6>
+                    <p class="small text-secondary mb-0">{{ translations.step_5_text }}</p>
+                </div>
+            </div>
+            <div class="col-12 col-md-6 col-lg-2">
+                <div class="card h-100 p-3">
+                    <div class="rounded-circle bg-success text-white d-flex align-items-center justify-content-center mb-3" style="width: 48px; height: 48px; font-weight: 700;">6</div>
+                    <h6 class="fw-bold mb-2">{{ translations.step_6 }}</h6>
+                    <p class="small text-secondary mb-0">{{ translations.step_6_text }}</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="mb-5">
+        <div class="card border-0 overflow-hidden">
+            <div class="row g-0 align-items-center" style="background: linear-gradient(135deg, rgba(15,84,64,0.82), rgba(23,107,79,0.86)); color: white; min-height: 160px;">
+                <div class="col-md-3 col-6 text-center py-4">
+                    <div class="display-6 fw-bold">10,000+</div>
+                    <div class="small text-white-50 text-uppercase tracking-wide">Registered Farmers</div>
+                </div>
+                <div class="col-md-3 col-6 text-center py-4">
+                    <div class="display-6 fw-bold">25+</div>
+                    <div class="small text-white-50 text-uppercase tracking-wide">APMC Centres</div>
+                </div>
+                <div class="col-md-3 col-6 text-center py-4">
+                    <div class="display-6 fw-bold">500+</div>
+                    <div class="small text-white-50 text-uppercase tracking-wide">Transport Partners</div>
+                </div>
+                <div class="col-md-3 col-6 text-center py-4">
+                    <div class="display-6 fw-bold">1M+</div>
+                    <div class="small text-white-50 text-uppercase tracking-wide">Tonnes Procured</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer class="card border-0 px-4 py-3" style="background: rgba(255,255,255,0.7);">
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+            <div class="d-flex align-items-center gap-2 fw-bold text-success fs-5">
+                <span class="brand-mark" style="width:32px;height:32px;font-size:.72rem;">KQ</span>
+                <span>KisanQueue</span>
+            </div>
+            <div class="small text-secondary d-flex flex-wrap gap-3">
+                <span>Fair Prices</span>
+                <span>•</span>
+                <span>Less Waiting</span>
+                <span>•</span>
+                <span>Better Opportunities</span>
+            </div>
+            <div class="small text-secondary d-flex flex-wrap gap-3 align-items-center">
+                <a href="#" class="text-secondary text-decoration-none">Privacy Policy</a>
+                <a href="#" class="text-secondary text-decoration-none">Terms of Service</a>
+                <a href="#" class="text-secondary text-decoration-none">Contact Us</a>
+                <div class="d-flex gap-2 ms-2">
+                    <span class="rounded-circle border d-inline-flex align-items-center justify-content-center" style="width:28px;height:28px;">f</span>
+                    <span class="rounded-circle border d-inline-flex align-items-center justify-content-center" style="width:28px;height:28px;">x</span>
+                    <span class="rounded-circle border d-inline-flex align-items-center justify-content-center" style="width:28px;height:28px;">◎</span>
+                </div>
+            </div>
+        </div>
+    </footer>
+</div>
+{% endblock %}

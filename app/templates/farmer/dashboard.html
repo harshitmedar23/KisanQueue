@@ -1,0 +1,105 @@
+{% extends "base.html" %}
+{% block title %}Dashboard{% endblock %}
+{% block content %}
+<div class="hero-strip mb-4"><p class="eyebrow text-warning">Farmer workspace</p><h1 class="page-title mb-2">Welcome back, {{ current_user.name }}.</h1><p>Book your next slot, follow the queue, and keep every payment receipt in one place.</p><div class="hero-stamp">MARKET<br>READY</div></div>
+
+<div class="row g-2 mb-4"><div class="col-sm-4"><a class="quick-action" href="{{ url_for('farmer.book_slot') }}"><span class="quick-icon">+</span><span><strong>Book a slot</strong><small>Choose crop and centre</small></span></a></div><div class="col-sm-4"><a class="quick-action" href="{{ url_for('farmer.prices') }}"><span class="quick-icon">₹</span><span><strong>Check mandi prices</strong><small>Compare market and MSP</small></span></a></div><div class="col-sm-4"><a class="quick-action" href="{{ url_for('farmer.notifications') }}"><span class="quick-icon">•</span><span><strong>Open updates</strong><small>Queue and payment alerts</small></span></a></div></div>
+
+<div class="row g-4">
+    <div class="col-md-7">
+        <div class="card h-100">
+            <div class="surface-header"><h5>Upcoming Slot</h5></div>
+            <div class="card-body">
+                {% if upcoming %}
+                    <h5>{{ upcoming.centre.name }}</h5>
+                    <p class="mb-1 text-muted">{{ upcoming.slot_config.date }} &middot; {{ upcoming.slot_config.time_slot }}</p>
+                    <p class="mb-1">Crop: <strong>{{ upcoming.crop_type }}</strong> &middot; Quantity: <strong>{{ upcoming.quantity_kg }} kg</strong></p>
+                    <p class="mb-2">Token Number: <span class="badge bg-success fs-6">#{{ upcoming.token_number }}</span></p>
+                    {% if upcoming.status in ['booked', 'serving'] %}
+                    <div class="farmer-live-queue" data-centre-id="{{ upcoming.centre_id }}" data-queue-date="{{ upcoming.slot_config.date.isoformat() }}" data-token="{{ upcoming.token_number }}">
+                        <div><span class="metric-label">Live queue</span><strong>Now serving <span data-live-serving>{{ queue_serving_token or '—' }}</span></strong></div>
+                        <div><span class="metric-label">Ahead</span><strong data-live-ahead>{{ tokens_ahead }}</strong></div>
+                        <div><span class="metric-label">Estimated wait</span><strong><span data-live-wait>{{ wait_minutes if wait_minutes is not none else 0 }}</span> min</strong></div>
+                        <div class="queue-steps" aria-label="Booking status">
+                            {% for step in ['booked', 'waiting', 'serving', 'completed'] %}
+                            <span class="queue-step {{ 'active' if (step == 'booked' and upcoming.status in ['booked', 'serving']) or (step == upcoming.status) else '' }}" data-queue-step="{{ step }}">{{ step|replace('_', ' ')|title }}</span>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+                    {% if upcoming.status == 'serving' %}
+                        <span class="badge bg-warning text-dark">You're being served now!</span>
+                    {% elif wait_minutes is not none %}
+                        <p class="text-muted small mb-2">Estimated wait: ~{{ wait_minutes }} minutes</p>
+                    {% endif %}
+                    <div class="mt-3 d-flex gap-2 flex-wrap">
+                        <a href="{{ url_for('farmer.queue_status', booking_id=upcoming.id) }}" class="btn btn-sm btn-outline-success">Live Queue Status</a>
+                        <a href="{{ url_for('farmer.tracker', booking_id=upcoming.id) }}" class="btn btn-sm btn-outline-secondary">Track Progress</a>
+                        <a href="{{ url_for('farmer.receipt', booking_id=upcoming.id) }}" class="btn btn-sm btn-outline-secondary">PDF Receipt</a>
+                        {% if upcoming.status == 'booked' %}
+                        <form method="POST" action="{{ url_for('farmer.cancel_booking', booking_id=upcoming.id) }}" onsubmit="return confirm('Cancel this booking?');">
+                            <button type="submit" class="btn btn-sm btn-outline-danger">Cancel Booking</button>
+                        </form>
+                        {% endif %}
+                    </div>
+                {% else %}
+                    <p class="text-muted">You have no upcoming procurement slot booked.</p>
+                    <a href="{{ url_for('farmer.book_slot') }}" class="btn btn-success">Book a Slot</a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-5">
+        <div class="card h-100">
+            <div class="surface-header"><h5>Recent History</h5></div>
+            <div class="card-body">
+                {% if history %}
+                    <ul class="list-group list-group-flush">
+                        {% for b in history %}
+                        <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+                            <div>
+                                <div class="small">{{ b.slot_config.date }} &middot; {{ b.centre.name }}</div>
+                                <div class="text-muted small">Token #{{ b.token_number }} &middot; {{ b.crop_type }}</div>
+                            </div>
+                            <span class="badge bg-{{ 'success' if b.status == 'completed' else 'secondary' }}">{{ b.status }}</span>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                    <a href="{{ url_for('farmer.history') }}" class="small">View full history &rarr;</a>
+                {% else %}
+                    <p class="text-muted small">No past procurement history yet.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+{% block scripts %}
+{% if upcoming and upcoming.status in ['booked', 'serving'] %}
+<script>
+(() => {
+    const liveQueue = document.querySelector('.farmer-live-queue');
+    if (!liveQueue || typeof io !== 'function') return;
+    const centreId = Number(liveQueue.dataset.centreId);
+    const queueDate = liveQueue.dataset.queueDate;
+    const token = Number(liveQueue.dataset.token);
+    const socket = io();
+    socket.emit('join_queue_room', { centre_id: centreId, date: queueDate });
+    socket.on('queue_update', (payload) => {
+        if (Number(payload.centre_id) !== centreId || payload.date !== queueDate) return;
+        const serving = Number(payload.serving_token || 0);
+        const ahead = Math.max(token - serving - 1, 0);
+        const status = serving === token ? 'serving' : (serving > token ? 'completed' : 'booked');
+        liveQueue.querySelector('[data-live-serving]').textContent = serving || '—';
+        liveQueue.querySelector('[data-live-ahead]').textContent = ahead;
+        liveQueue.querySelector('[data-live-wait]').textContent = ahead * 5;
+        liveQueue.querySelectorAll('[data-queue-step]').forEach((step) => {
+            step.classList.toggle('active', step.dataset.queueStep === status || (step.dataset.queueStep === 'booked' && status === 'booked'));
+        });
+    });
+    window.addEventListener('beforeunload', () => socket.emit('leave_queue_room', { centre_id: centreId, date: queueDate }));
+})();
+</script>
+{% endif %}
+{% endblock %}

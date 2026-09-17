@@ -1,0 +1,122 @@
+{% extends "base.html" %}
+{% block title %}Book a Slot{% endblock %}
+{% block content %}
+<div class="section-head"><div><p class="eyebrow">Plan your mandi visit</p><h1 class="page-title">Book a procurement slot</h1><p>Select your crop, preferred centre, and a time that works for your harvest day.</p></div><span class="badge rounded-pill text-bg-light">Step 1 of 1</span></div>
+
+<div class="card booking-surface">
+    <div class="card-body">
+    <div class="booking-guide"><span>01</span><div><strong>Tell us about your harvest</strong><small>We use this to prepare your procurement visit.</small></div></div>
+        <form method="POST" id="bookingForm">
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label class="form-label">Crop Type</label>
+                    <select name="crop_type" class="form-select" required>
+                        <option value="" disabled selected>Select crop</option>
+                        <option>Wheat</option>
+                        <option>Rice (Paddy)</option>
+                        <option>Maize</option>
+                        <option>Soybean</option>
+                        <option>Cotton</option>
+                        <option>Sugarcane</option>
+                        <option>Other</option>
+                    </select>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Quantity (kg)</label>
+                    <input type="number" step="0.1" min="1" name="quantity_kg" class="form-control" required>
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label">Procurement Centre</label>
+                    <select name="centre_id" id="centreSelect" class="form-select" required>
+                        <option value="" disabled selected>Select centre</option>
+                        {% for centre in centres %}
+                        <option value="{{ centre.id }}">{{ centre.name }} &mdash; {{ centre.location }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Available Date &amp; Time Slot</label>
+                    <select name="slot_config_id" id="slotSelect" class="form-select" required disabled>
+                        <option value="" disabled selected>Select a centre first</option>
+                    </select>
+                </div>
+            </div>
+            <div id="recommendations" class="recommendation-panel mt-4" hidden>
+                <div class="metric-label">Recommended slots</div>
+                <div id="recommendationList" class="recommendation-list"></div>
+            </div>
+            <div class="transport-option mt-4">
+                <label class="form-check">
+                    <input class="form-check-input" type="checkbox" name="transport_requested" id="transportToggle">
+                    <span class="form-check-label"><strong>Need a ride to the centre?</strong> <small class="text-muted">Paid, optional transport</small></span>
+                </label>
+                <div id="transportFields" class="row g-3 mt-1" hidden>
+                    <div class="col-md-5"><label class="form-label">Vehicle type</label><select name="vehicle_type" class="form-select"><option value="tata_ace">Tata Ace - Rs.350</option><option value="tractor">Tractor - Rs.500</option><option value="truck">Truck - Rs.900</option><option value="other">Other - Rs.400</option></select></div>
+                    <div class="col-md-7"><label class="form-label">Pickup location</label><input name="pickup_location" class="form-control" placeholder="Village, street, or landmark"></div>
+                </div>
+            </div>
+            <button type="submit" class="btn btn-success mt-4 px-4">Confirm booking <span aria-hidden="true">&rarr;</span></button>
+        </form>
+    </div>
+</div>
+
+<script>
+const slotsByCentre = {
+    {% for centre_id, slots in slots_by_centre.items() %}
+    "{{ centre_id }}": [
+        {% for s in slots %}
+        {id: {{ s.id }}, label: "{{ s.date }} — {{ s.time_slot }} ({{ s.available }} left)", available: {{ s.available }}},
+        {% endfor %}
+    ],
+    {% endfor %}
+};
+
+const centreSelect = document.getElementById('centreSelect');
+const slotSelect = document.getElementById('slotSelect');
+const transportToggle = document.getElementById('transportToggle');
+const transportFields = document.getElementById('transportFields');
+const recommendations = {{ recommended_by_centre|tojson }};
+const recommendationPanel = document.getElementById('recommendations');
+const recommendationList = document.getElementById('recommendationList');
+transportToggle.addEventListener('change', () => { transportFields.hidden = !transportToggle.checked; });
+
+centreSelect.addEventListener('change', () => {
+    const slots = slotsByCentre[centreSelect.value] || [];
+    const suggested = recommendations[centreSelect.value] || [];
+    recommendationList.innerHTML = suggested.map((item, index) => {
+        const slot = slots.find(candidate => candidate.id === item.id);
+        const unavailable = !slot || slot.available <= 0;
+        return `<button type="button" class="recommendation-item${unavailable ? ' recommendation-unavailable' : ''}" data-slot-id="${item.id}"${unavailable ? ' disabled' : ''}><strong>${item.date} · ${item.time_slot}</strong><span>${item.estimated_wait} min expected wait</span><b>${index === 0 ? 'Recommended' : 'Lower load'} · ${item.load_percent}% booked</b></button>`;
+    }).join('');
+    recommendationList.querySelectorAll('[data-slot-id]').forEach(item => {
+        item.addEventListener('click', () => {
+            slotSelect.value = item.dataset.slotId;
+            slotSelect.dispatchEvent(new Event('change', {bubbles: true}));
+        });
+    });
+    recommendationPanel.hidden = suggested.length === 0;
+    slotSelect.innerHTML = '';
+    if (slots.length === 0) {
+        slotSelect.innerHTML = `<option value="" disabled selected>${window.translateText ? window.translateText('No slots available') : 'No slots available'}</option>`;
+        slotSelect.disabled = true;
+        return;
+    }
+    slotSelect.disabled = false;
+    const selectLabel = window.translateText ? window.translateText('Select a slot') : 'Select a slot';
+    slotSelect.innerHTML = `<option value="" disabled selected>${selectLabel}</option>` +
+        slots.map(s => `<option value="${s.id}" ${s.available === 0 ? 'disabled' : ''}>${s.label.replace('left', window.translateText ? window.translateText('left') : 'left')}</option>`).join('');
+    recommendationList.querySelectorAll('[data-slot-id]').forEach(item => {
+        item.classList.toggle('recommendation-selected', item.dataset.slotId === slotSelect.value);
+    });
+});
+
+recommendationList.addEventListener('click', event => {
+    const recommendation = event.target.closest('[data-slot-id]');
+    if (!recommendation || recommendation.disabled) return;
+    recommendationList.querySelectorAll('[data-slot-id]').forEach(item => {
+        item.classList.toggle('recommendation-selected', item === recommendation);
+    });
+});
+</script>
+{% endblock %}

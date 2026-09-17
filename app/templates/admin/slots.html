@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% block title %}Manage Slots{% endblock %}
+{% block content %}
+<div class="section-head"><div><p class="eyebrow">Centre planning</p><h1 class="page-title">Slot management</h1><p>Shape the day around real capacity and farmer demand.</p></div></div>
+
+<div class="card shadow-sm mb-4">
+    <div class="card-body">
+        <h5 class="card-title">Add / Update a Slot</h5>
+        <form method="POST" class="row g-3">
+            <div class="col-md-3">
+                <label class="form-label">Centre</label>
+                <select name="centre_id" class="form-select" required>
+                    {% for c in centres %}
+                    <option value="{{ c.id }}">{{ c.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Date</label>
+                <input type="date" name="date" class="form-control" min="{{ today }}" required>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Time Slot</label>
+                <input type="text" name="time_slot" class="form-control" placeholder="e.g. 09:00 - 11:00" required>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">Capacity</label>
+                <input type="number" name="capacity" class="form-control" min="1" required>
+            </div>
+            <div class="col-md-1 d-flex align-items-end">
+                <button type="submit" class="btn btn-success w-100">Save</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="card shadow-sm">
+    <div class="card-header bg-white d-flex justify-content-between align-items-center"><strong>Upcoming slots</strong><span class="text-muted small">Booked counts update after each farmer booking</span></div>
+    <div class="table-responsive">
+        <table class="table mb-0 align-middle">
+            <thead class="table-light">
+                <tr><th>Centre</th><th>Date</th><th>Time Slot</th><th>Capacity</th><th>Booked</th><th>Available</th></tr>
+            </thead>
+            <tbody>
+                {% for s in slot_configs %}
+                <tr>
+                    <td>{{ s.centre.name }}</td>
+                    <td>{{ s.date }}</td>
+                    <td>{{ s.time_slot }}</td>
+                    <td>{{ s.capacity }}</td>
+                    <td>{{ s.booked_count }}</td>
+                    <td>{{ s.available }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

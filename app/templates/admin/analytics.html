@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+{% block title %}Analytics{% endblock %}
+{% block content %}
+<div class="section-head"><div><p class="eyebrow">Performance pulse</p><h1 class="page-title mb-0">Analytics</h1><p>Small signals for faster decisions across every centre.</p></div><span class="system-badge"><i></i>Live database view</span></div>
+
+<div class="row g-3 mb-4">
+    <div class="col-6 col-md-3">
+        <div class="card metric-card">
+            <div class="metric-label">Total bookings</div>
+            <div class="metric-value">{{ total_bookings }}</div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="card metric-card">
+            <div class="metric-label">Completed</div>
+            <div class="metric-value text-success">{{ completed }}</div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="card metric-card">
+            <div class="metric-label">No-shows</div>
+            <div class="metric-value text-danger">{{ no_shows }}</div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="card metric-card">
+            <div class="metric-label">Pending payments</div>
+            <div class="metric-value text-warning">{{ pending_payments }}</div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="card metric-card">
+            <div class="metric-label">Average wait</div>
+            <div class="metric-value">{{ average_wait_minutes }} min</div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="card metric-card">
+            <div class="metric-label">Currently waiting</div>
+            <div class="metric-value">{{ waiting_count }}</div>
+        </div>
+    </div>
+</div>
+
+<div class="card shadow-sm mb-4">
+    <div class="card-body">
+        <div class="text-muted small">Total Payments Processed</div>
+        <div class="fs-3 fw-bold">Rs. {{ "%.2f"|format(paid_total) }}</div>
+    </div>
+</div>
+
+<div class="card shadow-sm">
+    <div class="card-header bg-white fw-semibold">Bookings per Centre</div>
+    <ul class="list-group list-group-flush">
+        {% for name, count in per_centre %}
+        <li class="list-group-item d-flex justify-content-between">
+            <span>{{ name }}</span><span class="fw-semibold">{{ count }}</span>
+        </li>
+        {% else %}
+        <li class="list-group-item text-muted text-center py-4">No data yet.</li>
+        {% endfor %}
+    </ul>
+</div>
+<div class="card shadow-sm mt-4 compact-chart-card"><div class="card-body"><div class="d-flex justify-content-between align-items-center"><div><p class="eyebrow mb-1">Centre throughput</p><h5 class="mb-0">Bookings by centre</h5></div><span class="chart-key"><i></i> bookings</span></div><div class="compact-chart-wrap"><canvas id="centreChart"></canvas></div></div></div>
+<div class="card shadow-sm mt-4">
+    <div class="card-body">
+        <div class="d-flex justify-content-between align-items-center mb-3"><div><p class="eyebrow mb-1">Congestion heatmap</p><h5 class="mb-0">Last 7 days by centre and slot</h5></div><span class="heatmap-key"><i class="heat-low"></i> &lt;50% <i class="heat-medium"></i> 50-80% <i class="heat-high"></i> &gt;80%</span></div>
+        {% if heatmap_slot_names %}
+        <div class="heatmap-scroll"><table class="heatmap-table"><thead><tr><th>Centre</th>{% for slot in heatmap_slot_names %}<th>{{ slot }}</th>{% endfor %}</tr></thead><tbody>{% for row in heatmap_rows %}<tr><th>{{ row.name }}</th>{% for cell in row.cells %}<td class="heat-{{ 'low' if cell.load < 50 else ('medium' if cell.load <= 80 else 'high') }}" title="{{ cell.count }} bookings, {{ cell.load }}% load">{{ cell.load }}%</td>{% endfor %}</tr>{% endfor %}</tbody></table></div>
+        {% else %}<p class="text-muted mb-0">No slot data yet.</p>{% endif %}
+    </div>
+</div>
+<div class="card shadow-sm mt-4">
+    <div class="card-body">
+        <div class="d-flex justify-content-between align-items-center mb-3"><div><p class="eyebrow mb-1">Demand forecast</p><h5 class="mb-0">Tomorrow's Forecast</h5></div><span class="text-muted small">Based on matching weekdays</span></div>
+        <div class="forecast-grid">
+            {% for forecast in forecasts %}
+            <article class="forecast-card"><strong>{{ forecast.name }}</strong>{% if forecast.crops %}<ul>{% for crop, average in forecast.crops.items() %}<li><span>{{ crop }}</span><b>{{ average }} bookings</b></li>{% endfor %}</ul>{% else %}<p class="text-muted small mb-0">Not enough data yet</p>{% endif %}</article>
+            {% else %}<p class="text-muted mb-0">Not enough data yet.</p>{% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+{% block scripts %}<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script><script>new Chart(document.getElementById('centreChart'), {type:'bar', data:{labels:{{ chart_labels|tojson }}, datasets:[{label:'Bookings', data:{{ chart_values|tojson }}, backgroundColor:'#147d64', hoverBackgroundColor:'#e5a12f', borderRadius:5, maxBarThickness:22}]}, options:{responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}, tooltip:{displayColors:false}}, scales:{x:{grid:{display:false}, ticks:{color:'#6d7e7e', maxRotation:0, autoSkip:false}}, y:{beginAtZero:true, suggestedMax:Math.max(...{{ chart_values|tojson }}, 1) + 1, ticks:{precision:0, color:'#6d7e7e'}, grid:{color:'rgba(23,51,52,.08)'}}}}});</script>{% endblock %}

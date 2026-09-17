@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+{% block title %}Mandi Management{% endblock %}
+{% block content %}
+<div class="section-head">
+    <div>
+        <p class="eyebrow">Admin operations</p>
+        <h1 class="page-title">Mandi management</h1>
+        <p>Assign and manage the mandi owner relationship for each procurement centre.</p>
+    </div>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-5">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="mb-3">Create procurement centre</h5>
+                <form method="POST" action="{{ url_for('admin.create_centre') }}">
+                    <div class="mb-3">
+                        <label class="form-label">Centre name</label>
+                        <input name="name" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Location</label>
+                        <input name="location" class="form-control">
+                    </div>
+                    <button class="btn btn-success w-100">Create centre</button>
+                </form>
+            </div>
+        </div>
+
+        <div class="card mt-4">
+            <div class="card-body">
+                <h5 class="mb-3">Assign mandi owner</h5>
+                <form method="POST">
+                    <div class="mb-3">
+                        <label class="form-label">Owner name</label>
+                        <input name="name" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Owner mobile</label>
+                        <input name="mobile_number" type="tel" class="form-control" pattern="[6-9][0-9]{9}" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Mandi centre</label>
+                        <select name="centre_id" class="form-select" required>
+                            {% for centre in centres %}<option value="{{ centre.id }}">{{ centre.name }}</option>{% endfor %}
+                        </select>
+                    </div>
+                    <button class="btn btn-primary w-100">Create / assign owner</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-7">
+        <div class="card">
+            <div class="surface-header"><h5>Owner assignments</h5></div>
+            <div class="table-responsive">
+                <table class="table mb-0">
+                    <thead><tr><th>Owner</th><th>Mobile</th><th>Mandi</th><th>Status</th><th>Reassign</th></tr></thead>
+                    <tbody>
+                        {% for owner in owners %}
+                        <tr>
+                            <td>{{ owner.name }}</td>
+                            <td>{{ owner.mobile_number }}</td>
+                            <td>{% if owner.assigned_centre %}{{ owner.assigned_centre.name }}{% else %}Unassigned{% endif %}</td>
+                            <td>
+                                <form method="POST" action="{{ url_for('admin.toggle_mandi_owner_status', user_id=owner.id) }}">
+                                    <button type="submit" class="btn btn-sm {{ 'btn-outline-warning' if owner.is_active else 'btn-outline-secondary' }}">
+                                        {{ 'Deactivate' if owner.is_active else 'Activate' }}
+                                    </button>
+                                </form>
+                            </td>
+                            <td>
+                                <form method="POST" action="{{ url_for('admin.assign_owner_centre', user_id=owner.id) }}" class="d-flex gap-2 align-items-center">
+                                    <select name="centre_id" class="form-select form-select-sm">
+                                        {% for centre in centres %}
+                                        <option value="{{ centre.id }}" {% if owner.assigned_centre_id == centre.id %}selected{% endif %}>{{ centre.name }}</option>
+                                        {% endfor %}
+                                    </select>
+                                    <button class="btn btn-sm btn-outline-primary">Save</button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr><td colspan="5" class="text-center text-muted py-4">No mandi owners assigned yet.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

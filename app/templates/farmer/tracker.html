@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+{% block title %}Track Progress{% endblock %}
+{% block content %}
+<div class="section-head"><div><p class="eyebrow">One clear journey</p><h1 class="page-title">Procurement &amp; payment</h1><p>Follow each step from your booked slot to the final payment.</p></div></div>
+
+<div class="card shadow-sm mb-4">
+    <div class="card-body">
+        <h5>{{ booking.centre.name }}</h5>
+        <p class="text-muted mb-1">{{ booking.slot_config.date }} &middot; {{ booking.slot_config.time_slot }}</p>
+        <p class="mb-0">Token #{{ booking.token_number }} &middot; {{ booking.crop_type }} &middot; {{ booking.quantity_kg }} kg</p>
+        {% if booking.payment_amount %}
+        <p class="mb-0">Payment: <strong>Rs. {{ "%.2f"|format(booking.payment_amount) }}</strong></p>
+        {% endif %}
+    </div>
+</div>
+
+{% if procurement_qr or transport_qr %}
+<div class="card shadow-sm mb-4">
+    <div class="card-body">
+        <h5>Pay by UPI</h5>
+        <p class="text-muted small">Scan with any UPI app. Staff must manually confirm that payment was received.</p>
+        {% if upi_vpa %}<p class="mb-3">UPI ID: <strong>{{ upi_vpa }}</strong></p>{% endif %}
+        <div class="payment-qr-grid">
+            {% if procurement_qr %}<div><img src="{{ procurement_qr }}" alt="UPI QR for procurement payment"><strong>Procurement: Rs. {{ "%.2f"|format(booking.estimated_payment) }}</strong></div>{% endif %}
+            {% if transport_qr %}<div><img src="{{ transport_qr }}" alt="UPI QR for transport fare"><strong>Transport: Rs. {{ "%.2f"|format(booking.transport_booking.fare_amount) }}</strong></div>{% endif %}
+        </div>
+    </div>
+</div>
+{% elif upi_vpa and booking.payment_status != 'paid' and not booking.estimated_payment %}
+<div class="alert alert-warning">Payment amount is not available yet. The UPI QR will appear after staff publishes the market price.</div>
+{% endif %}
+
+{% if booking.transport_booking %}
+<div class="card shadow-sm mb-4">
+    <div class="card-body">
+        <h5>Transport service</h5>
+        <p class="text-muted mb-2">Pickup: {{ booking.transport_booking.pickup_location }} &middot; Fare: Rs. {{ "%.2f"|format(booking.transport_booking.fare_amount) }}</p>
+        {% if booking.transport_booking.vehicle %}<p class="mb-3">Driver: <strong>{{ booking.transport_booking.vehicle.driver_name }}</strong> &middot; {{ booking.transport_booking.vehicle.driver_phone }}</p>{% endif %}
+        <div class="transport-timeline" id="transportTimeline" data-booking-id="{{ booking.id }}" data-centre-id="{{ booking.centre_id }}" data-queue-date="{{ booking.slot_config.date.isoformat() }}">
+            {% for step in ['requested', 'assigned', 'on_the_way', 'arrived', 'completed'] %}
+            <span class="{{ 'active' if ['requested', 'assigned', 'on_the_way', 'arrived', 'completed'].index(booking.transport_booking.status) >= loop.index0 else '' }}" data-transport-step="{{ step }}">{{ step|replace('_', ' ')|title }}</span>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<div class="card shadow-sm">
+    <div class="card-body">
+        <ul class="list-group list-group-flush">
+            {% for step in booking.timeline() %}
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+                <div>
+                    <span class="{{ 'text-success fw-semibold' if step.done else 'text-muted' }}">
+                        {{ '✅' if step.done else '⬜' }} {{ step.label }}
+                    </span>
+                </div>
+                {% if step.at %}
+                <span class="text-muted small">{{ step.at.strftime('%d %b %Y, %I:%M %p') }}</span>
+                {% endif %}
+            </li>
+            {% endfor %}
+        </ul>
+    </div>
+</div>
+{% endblock %}
+{% block scripts %}
+{% if booking.transport_booking %}
+<script>
+(() => {
+    const timeline = document.getElementById('transportTimeline');
+    if (!timeline || typeof io !== 'function') return;
+    const steps = ['requested', 'assigned', 'on_the_way', 'arrived', 'completed'];
+    const socket = io();
+    const room = { centre_id: Number(timeline.dataset.centreId), date: timeline.dataset.queueDate };
+    socket.emit('join_queue_room', room);
+    socket.on('transport_update', (payload) => {
+        if (Number(payload.booking_id) !== Number(timeline.dataset.bookingId)) return;
+        const currentIndex = steps.indexOf(payload.status);
+        timeline.querySelectorAll('[data-transport-step]').forEach((step) => {
+            step.classList.toggle('active', steps.indexOf(step.dataset.transportStep) <= currentIndex);
+        });
+    });
+    window.addEventListener('beforeunload', () => socket.emit('leave_queue_room', room));
+})();
+</script>
+{% endif %}
+{% endblock %}

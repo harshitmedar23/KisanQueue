@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="{{ language }}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}KisanQueue{% endblock %} | KisanQueue</title>
+    <script>
+        (() => {
+            const savedTheme = localStorage.getItem('kisanqueue-theme');
+            const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+            document.documentElement.dataset.theme = savedTheme || (prefersDark ? 'dark' : 'light');
+        })();
+    </script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}?v=6">
+</head>
+<body class="d-flex flex-column min-vh-100 {{ current_user.role if current_user.is_authenticated else 'guest' }}-shell">
+
+<nav class="navbar navbar-expand-lg navbar-dark app-navbar">
+    <div class="container">
+        <a class="navbar-brand fw-bold d-flex align-items-center gap-2" href="{{ url_for('index') }}"><span class="brand-mark">KQ</span><span>KisanQueue<small>mandi operations</small></span></a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navMenu">
+            <ul class="navbar-nav ms-auto mb-2 mb-lg-0 align-items-lg-center">
+                {% if current_user.is_authenticated %}
+                    {% if current_user.role == 'farmer' %}
+                        <li class="nav-item"><a class="nav-link {{ 'active' if request.endpoint == 'farmer.dashboard' else '' }}" href="{{ url_for('farmer.dashboard') }}">{{ labels.dashboard }}</a></li>
+                        <li class="nav-item"><a class="nav-link {{ 'active' if request.endpoint == 'farmer.book_slot' else '' }}" href="{{ url_for('farmer.book_slot') }}">{{ labels.book }}</a></li>
+                        <li class="nav-item"><a class="nav-link {{ 'active' if request.endpoint in ['farmer.history', 'farmer.tracker'] else '' }}" href="{{ url_for('farmer.history') }}">{{ labels.history }}</a></li>
+                        <li class="nav-item"><a class="nav-link {{ 'active' if request.endpoint == 'farmer.prices' else '' }}" href="{{ url_for('farmer.prices') }}">{{ labels.prices }}</a></li>
+                        <li class="nav-item">
+                            <a class="nav-link position-relative {{ 'active' if request.endpoint == 'farmer.notifications' else '' }}" href="{{ url_for('farmer.notifications') }}">
+                                {{ labels.notifications }}
+                                {% if unread_notification_count %}
+                                <span class="badge bg-danger rounded-pill">{{ unread_notification_count }}</span>
+                                {% endif %}
+                            </a>
+                        </li>
+                    {% elif current_user.role == 'staff' %}
+                        <li class="nav-item"><a class="nav-link {{ 'active' if request.endpoint == 'admin.dashboard' else '' }}" href="{{ url_for('admin.dashboard') }}">{{ labels.queue }}</a></li>
+                        <li class="nav-item"><a class="nav-link {{ 'active' if request.endpoint == 'admin.transport_operations' else '' }}" href="{{ url_for('admin.transport_operations') }}">Transport</a></li>
+                    {% else %}
+                        {% if current_user.is_mandi_owner() %}
+                        <li class="nav-item"><a class="nav-link {{ 'active' if request.endpoint in ['admin.dashboard', 'admin.owner_dashboard'] else '' }}" href="{{ url_for('admin.owner_dashboard') }}">Owner Dashboard</a></li>
+                        {% else %}
+                        <li class="nav-item"><a class="nav-link {{ 'active' if request.endpoint == 'admin.dashboard' else '' }}" href="{{ url_for('admin.dashboard') }}">{{ labels.queue }}</a></li>
+                        {% endif %}
+                        {% if current_user.is_admin() %}
+                        <li class="nav-item"><a class="nav-link {{ 'active' if request.endpoint == 'admin.manage_slots' else '' }}" href="{{ url_for('admin.manage_slots') }}">{{ labels.slots }}</a></li>
+                        <li class="nav-item"><a class="nav-link {{ 'active' if request.endpoint == 'admin.analytics' else '' }}" href="{{ url_for('admin.analytics') }}">{{ labels.analytics }}</a></li>
+                        <li class="nav-item"><a class="nav-link {{ 'active' if request.endpoint == 'admin.manage_prices' else '' }}" href="{{ url_for('admin.manage_prices') }}">{{ labels.prices }}</a></li>
+                        <li class="nav-item"><a class="nav-link {{ 'active' if request.endpoint == 'admin.audit_log' else '' }}" href="{{ url_for('admin.audit_log') }}">{{ labels.audit }}</a></li>
+                        {% endif %}
+                        {% if current_user.is_admin() %}
+                        <li class="nav-item"><a class="nav-link {{ 'active' if request.endpoint == 'admin.manage_mandi_owners' else '' }}" href="{{ url_for('admin.manage_mandi_owners') }}">Mandi Owners</a></li>
+                        {% else %}
+                        <li class="nav-item"><a class="nav-link {{ 'active' if request.endpoint == 'admin.manage_staff' else '' }}" href="{{ url_for('admin.manage_staff') }}">Staff</a></li>
+                        {% endif %}
+                        <li class="nav-item"><a class="nav-link {{ 'active' if request.endpoint == 'admin.transport_operations' else '' }}" href="{{ url_for('admin.transport_operations') }}">Transport</a></li>
+                    {% endif %}
+                    <li class="nav-item ms-lg-2">
+                        <span class="navbar-text user-chip"><span class="status-dot"></span>{{ current_user.name }}</span>
+                        <a class="btn btn-outline-light btn-sm" href="{{ url_for('auth.logout') }}">{{ labels.logout }}</a>
+                        <span class="language-switcher" aria-label="Choose language">{% for code, name in language_options %}<a class="language-option {{ 'active' if language == code else '' }}" href="{{ url_for('farmer.language', language=code) }}" title="{{ name }}" aria-label="{{ name }}">{{ code|upper }}</a>{% endfor %}</span>
+                    </li>
+                {% else %}
+                    <li class="nav-item"><a class="nav-link" href="{{ url_for('auth.login') }}">Login</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{{ url_for('auth.register') }}">Register</a></li>
+                    <li class="nav-item"><span class="language-switcher" aria-label="Choose language">{% for code, name in language_options %}<a class="language-option {{ 'active' if language == code else '' }}" href="{{ url_for('farmer.language', language=code) }}" title="{{ name }}" aria-label="{{ name }}">{{ code|upper }}</a>{% endfor %}</span></li>
+                {% endif %}
+                <li class="nav-item ms-lg-2"><button type="button" class="theme-toggle" data-theme-toggle aria-label="Toggle dark mode" title="Toggle dark mode"><span class="theme-toggle-icon" aria-hidden="true"></span><span class="visually-hidden">Toggle dark mode</span></button></li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<main class="container app-main flex-grow-1">
+    {% if current_user.is_authenticated %}<div class="context-bar"><span class="context-kicker">{{ 'Farmer portal' if current_user.role == 'farmer' else ('Admin console' if current_user.is_admin() else ('Mandi owner console' if current_user.is_mandi_owner() else 'Staff console')) }}</span><span class="context-rule"></span><span>{{ current_user.name }}</span><span class="context-status"><i></i> System online</span></div>{% endif %}
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ 'danger' if category == 'danger' else category }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    {% block content %}{% endblock %}
+</main>
+
+{% if current_user.is_authenticated and current_user.role == 'farmer' %}
+<button type="button" class="farmer-help-button" data-bs-toggle="modal" data-bs-target="#farmerHelpModal">{{ 'Need Help?' if language == 'en' else ('मदद चाहिए?' if language == 'hi' else 'ಸಹಾಯ ಬೇಕೇ?') }}</button>
+<button type="button" class="farmer-chat-button" data-chat-toggle aria-expanded="false" aria-controls="farmerChatPanel">Ask Kisan AI</button>
+<section class="farmer-chat-panel" id="farmerChatPanel" data-chat-panel hidden aria-labelledby="farmerChatTitle">
+    <div class="farmer-chat-header">
+        <div><span class="metric-label">Farmer support</span><h2 id="farmerChatTitle">Kisan AI</h2></div>
+        <button type="button" class="btn-close" data-chat-close aria-label="Close assistant"></button>
+    </div>
+    <div class="farmer-chat-messages" data-chat-messages aria-live="polite">
+        <div class="chat-message chat-message-assistant">Namaste. Ask me about slot booking, approvals, queue tokens, payments, or transport.</div>
+    </div>
+    <form class="farmer-chat-form" data-chat-form>
+        <label class="visually-hidden" for="farmerChatInput">Your question</label>
+        <textarea id="farmerChatInput" data-chat-input rows="2" maxlength="1000" placeholder="Ask by voice or type..." required></textarea>
+        <div class="farmer-chat-actions"><label class="farmer-chat-voice-toggle"><input type="checkbox" data-chat-voice checked> Read answers aloud</label><small data-chat-status>AI support</small><div class="farmer-chat-buttons"><button type="button" class="btn btn-outline-success btn-sm" data-chat-mic title="Start voice assistant" aria-label="Start voice assistant">Voice</button><button type="submit" class="btn btn-success btn-sm">Send</button></div></div>
+    </form>
+</section>
+<div class="modal fade" id="farmerHelpModal" tabindex="-1" aria-labelledby="farmerHelpTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered"><div class="modal-content">
+        <div class="modal-header"><h5 class="modal-title" id="farmerHelpTitle">{{ 'Need help?' if language == 'en' else ('मदद चाहिए?' if language == 'hi' else 'ಸಹಾಯ ಬೇಕೇ?') }}</h5><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button></div>
+        <div class="modal-body">
+            <p class="mb-2">{{ 'Contact your procurement centre or help desk.' if language == 'en' else ('अपने खरीद केंद्र या सहायता डेस्क से संपर्क करें।' if language == 'hi' else 'ನಿಮ್ಮ ಖರೀದಿ ಕೇಂದ್ರ ಅಥವಾ ಸಹಾಯ ಡೆಸ್ಕ್ ಸಂಪರ್ಕಿಸಿ.') }}</p>
+            {% if farmer_help_centre %}<p class="mb-1"><strong>{{ farmer_help_centre.name }}</strong></p><p class="text-muted small">{{ farmer_help_centre.location }}</p>{% endif %}
+            <p class="mb-1"><strong>Help desk:</strong> <a href="tel:{{ farmer_help_phone|replace('-', '') }}">{{ farmer_help_phone }}</a></p>
+            <p class="mb-0"><strong>Email:</strong> <a href="mailto:{{ farmer_help_email }}">{{ farmer_help_email }}</a></p>
+        </div>
+    </div></div>
+</div>
+{% endif %}
+
+<footer class="app-footer">
+    <div class="container d-flex justify-content-between gap-3"><span>KisanQueue</span><span>Slot booking &middot; queue operations &middot; fair payments</span></div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+<script src="{{ url_for('static', filename='js/main.js') }}?v=6"></script>
+{% block scripts %}{% endblock %}
+</body>
+</html>
