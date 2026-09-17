@@ -2,6 +2,24 @@
 
 A Flask application for farmer slot booking, mandi prices, live procurement queues, staff operations, payments, QR check-in, notifications, and multilingual farmer access.
 
+## Screenshots
+
+### Farmer Dashboard
+
+![Farmer Dashboard](screenshots/dashboard.jpeg)
+
+### Book Procurement Slot
+
+![Book Procurement Slot](screenshots/book-slot.jpeg)
+
+### Mandi Prices
+
+![Mandi Prices](screenshots/mandi-prices.jpeg)
+
+### Procurement Centres
+
+![Procurement Centres](screenshots/procurement-centres.jpeg)
+
 ## 1. What The Project Does
 
 ### Farmer workflow
